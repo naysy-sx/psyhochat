@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Психочат</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Фоллбэк PNG для старых браузеров -->
+  <link rel="alternate icon" type="image/png" href="/favicon.png">
+
+  <!-- Фавиконка для iOS -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/main.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="layout">
+      <!-- Секция цитат -->
+      <div id="quoteContainer" class="quote">
+        <h2>Загрузка цитаты...</h2>
+      </div>
+
+      <!-- Секция чата -->
+      <div class="chat-section">
+        <div class="chat-toggle-wrapper">
+          <a id="toggleChat" class="chat-toggle">Показать чат</a>
+        </div>
+
+        <div id="chatContainer" style="display: none;">
+          <!-- Контейнер сообщений -->
+          <div class="chat-messages" id="messagesContainer"></div>
+
+          <!-- Контейнер для ввода сообщений (скрыт для незарегистрированных) -->
+          <div id="messageInputContainer" style="display: none;">
+            <div class="message-input-container">
+              <textarea id="messageInput" placeholder="Введите сообщение (макс. 300 символов)"
+                maxlength="300"></textarea>
+
+
+              <div class="chat-controls">
+
+                <div class="emoji-container">
+                  <button id="emojiToggle" type="button">😊</button>
+                  <div class="emoji-panel" id="emojiPanel" style="display: none;">
+                    <button class="emoji-button">😊</button>
+                    <button class="emoji-button">😂</button>
+                    <button class="emoji-button">👍</button>
+                    <button class="emoji-button">❤️</button>
+                    <button class="emoji-button">🎉</button>
+                  </div>
+                </div>
+
+
+                <div class="chat-controls-right">
+                  <button id="sendMessage" type="button">Отправить</button>
+                  <button id="logoutButton" type="button" class="logout-button">Выйти</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Форма регистрации (показывается незарегистрированным) -->
+          <div id="registrationInChatContainer" class="registration">
+            <details>
+              <summary>Для отправки сообщений <br>вам необходимо представится</summary>
+              <form class="registration-form">
+                <div class="form-group">
+                  <label for="nickname">Имя <sup>(до 60 символов)</sup></label>
+                  <input type="text" id="nickname" name="nickname" required maxlength="60">
+
+                  <p><b><small>Если вы в затруднении, то можете выбрать <br>ненастоящее имя из списка ниже:</small></b>
+                  </p>
+                  <ul id="nicknameSuggestions"></ul>
+                </div>
+
+                <div class="form-group">
+                  <label for="gender">Пол:</label>
+                  <select id="gender" name="gender" required>
+                    <option value="male">Мужчина</option>
+                    <option value="female">Женщина</option>
+                    <option value="other">Оно</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="city">Город (необязательно):</label>
+                  <input type="text" id="city" name="city">
+                </div>
+
+                <div class="form-group">
+                  <label for="captcha">Сколько будет 2 + 3?</label>
+                  <input type="text" id="captcha" name="captcha" required>
+                </div>
+
+                <button type="submit">Зарегистрироваться</button>
+              </form>
+
+            </details>
+
+
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- Контейнер для ошибок -->
+    <div id="errorContainer"></div>
+
+    <footer class="footer">
+      <time class="footer-date"></time>
+
+      <a href="mailto:naxymails@gmail.com">Написать разработчику</a>
+    </footer>
+
+    <script>
+      const currentDate = new Date();
+      const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+      const day = days[currentDate.getDay()];
+      const date = currentDate.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      document.querySelector('.footer-date').textContent = `${day}, ${date}`;
+
+    </script>
+
+  </div>
+
+  <!-- Скрипты -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Инициализация Supabase
+    const supabaseUrl = 'https://fmxbhdjsynadxhuuanax.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZteGJoZGpzeW5hZHhodXVhbmF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjY1MTQsImV4cCI6MjA1MTg0MjUxNH0.rrcUX19NRsIiLpCAaMT2YE2lP5FSp7qRJ5vC-guWsZs';
+
+    if (typeof window.supabase?.createClient === 'function') {
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+      window.supabase = supabase;
+      console.log('Supabase client initialized:', supabase);
+    } else {
+      console.error('Supabase client creation failed: window.supabase.createClient is not available');
+    }
+  </script>
+  <script src="sync-manager.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
